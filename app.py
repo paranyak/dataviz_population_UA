@@ -10,17 +10,18 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', './styles.
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-app.layout = html.Div([
-    dcc.Graph(id='graph-with-slider'),
-    dcc.Slider(
+app.layout = html.Div([html.Div([
+    html.Div([dcc.Graph(id='graph-with-slider')], style={"width": "60%"}),
+    html.Div(id='click-data', style={"width": "35%"})
+], style={"display": "flex", "justify-content": "center", "align-content": "center", "margin-bottom": "20px"}),
+
+    html.Div([dcc.Slider(
         id='year-slider',
         min=df['year'].min(),
         max=df['year'].max(),
         value=df['year'].min(),
         marks={str(year): str(year) for year in df['year'].unique()}
-    ),
-    html.Div(id='click-data')
-], style={"width": "90%", "margin": "0 auto"})
+    )], style={"width": "90%", "margin": "0 auto"})])
 
 
 @app.callback(
@@ -34,52 +35,34 @@ def display_click_data(clickData, year):
 
     if clickData:
         filtered_df = df[df.year == year]
-        filtered_region = filtered_df[filtered_df.region == clickData['points'][0]['x']]
+        filtered_region = filtered_df[filtered_df.region == clickData['points'][0]['y']]
         labels = list(filtered_region.age)
         for i in range(len(filtered_region.city)):
             value_city.append(int((list(filtered_region.city)[i]).replace(" ", "")))
             value_village.append(int((list(filtered_region.village)[i]).replace(" ", "")))
         print("VALUES: ", value_city, value_village, " labels : ", labels)
 
+        traces = []
+        for i in range(len(labels)):
+            if value_city[i] != 0 and value_village[i] != 0:
+                traces.append(go.Scatter(
+                    x=["city", "village"],
+                    y=[value_city[i], value_village[i]],
+                    name=labels[i]
+                ))
+        print("traces:", traces)
         return html.Div([
-            html.H5(['Amount of mothers in ' + str(year) + ' year in ' + clickData['points'][0]['x'] + ' obl.'],
+            html.H5(['Amount of mothers in ' + str(year) + ' year in ' + clickData['points'][0]['y'] + ' obl.'],
                     style={"margin": "40px auto 0 auto",
                     "text-align": "center"}),
-            html.Div([dcc.Graph(
-                className='six columns',
-                figure={
-                    'data': [{
-                        'values': value_city,
-                        'labels': labels,
-                        'sort': False,
-                        'hoverinfo': 'label+percent+value',
-                        'textfont': dict(size=15),
-                        'textposition' : 'inside',
-                        'marker': dict(colors=colors, line=dict(color='#000000', width=1)),
-                        "hole": .3,
-                        'type': 'pie',
-                    }],
-                    'layout': {'title': 'In city'}
-                }
-            ),
-            dcc.Graph(
-                className='six columns',
-                figure={
-                    'data': [{
-                        'values': value_village,
-                        'labels': labels,
-                        'sort': False,
-                        'hoverinfo':'label+percent+value',
-                        'textfont': dict(size=15),
-                        'textposition': 'inside',
-                        'marker': dict(colors=colors, line=dict(color='#000000', width=1)),
-                        "hole": .3,
-                        'type': 'pie',
-                    }],
-                    'layout': {'title': 'In village'}
-                }
-            )
-        ], className='column', style={"margin-left": "0"})])
+            html.Div(dcc.Graph(
+        figure={
+            'data': traces,
+             'layout': {
+                'height': 800
+            }
+        }
+    ))])
 
 
 @app.callback(
@@ -102,37 +85,34 @@ def update_figure(selected_year):
             local_amount += int(j.replace(" ", ""))
         amount_village.append(local_amount)
         areas.append(i)
-    traces.append(go.Bar(
-        x=areas,
-        y=amount_city,
-        name="city",
-        marker=dict(
-            color='#F97F51',
-            line=dict(
-                color='rgb(8,48,107)',
-                width=1.5,
-            )
-        ),
-    ))
-    traces.append(go.Bar(
-        x=areas,
-        y=amount_village,
-        name="village",
-        marker=dict(
-            color='#B33771',
-            line=dict(
-                color='rgb(8,48,107)',
-                width=1.5,
-            )
-        ),
-    ))
+        sorty = [y for _, y in sorted(zip(amount_city, areas))]
+        sortx = sorted(amount_city)
+    traces.append({
+        "y": sorty,
+        "x": sortx,
+        "mode": "markers",
+        "name": "city",
+        "type": "scatter",
+        "marker": dict(
+            size=15)
+    })
+    traces.append({
+        "y": areas,
+        "x": amount_village,
+        "mode": "markers",
+        "name": "village",
+        "type": "scatter",
+        "marker": dict(
+            size=15)
+    })
 
     return {
         'data': traces,
         'layout': go.Layout(
             xaxis={'title': 'region'},
             yaxis={'title': 'amount'},
-            margin={'l': 100, 'b': 100, 't': 30, 'r': 100},
+            margin={'l': 100, 'b': 30, 't': 30, 'r': 0},
+            height=800
         )
     }
 
