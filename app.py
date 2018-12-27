@@ -5,14 +5,15 @@ import pandas as pd
 import plotly.graph_objs as go
 
 df = pd.read_csv('./kids_sorted_eng.csv')
-
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', './styles.css']
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+colors = ['#F8EFBA', '#ffdd59', '#F97F51', '#ff5e57', '#ef5777', '#B33771', '#82589F', '#182C61', '#58B19F', '#0be881']
+
 app.layout = html.Div([html.Div([
     html.Div([dcc.Graph(id='graph-with-slider')], style={"width": "60%"}),
-    html.Div(id='click-data', style={"width": "35%"})
+    html.Div(id='click-data', style={"width": "35%", "height": "800px"})
 ], style={"display": "flex", "justify-content": "center", "align-content": "center", "margin-bottom": "20px"}),
 
     html.Div([dcc.Slider(
@@ -20,7 +21,7 @@ app.layout = html.Div([html.Div([
         min=df['year'].min(),
         max=df['year'].max(),
         value=df['year'].min(),
-        marks={str(year): str(year) for year in df['year'].unique()}
+        marks={str(year): {'label': str(year), 'style': {"font-family": 'Courier New, monospace', "font-size": 16, "color": '#7f7f7f'}} for year in df['year'].unique()},
     )], style={"width": "90%", "margin": "0 auto"})])
 
 
@@ -29,7 +30,6 @@ app.layout = html.Div([html.Div([
     [dash.dependencies.Input('graph-with-slider', 'clickData'),
      dash.dependencies.Input('year-slider', 'value')])
 def display_click_data(clickData, year):
-    colors = ['#F8EFBA', '#ffdd59', '#F97F51', '#ff5e57', '#ef5777', '#B33771', '#82589F', '#182C61', '#58B19F', '#0be881']
     value_city = []
     value_village = []
 
@@ -48,19 +48,24 @@ def display_click_data(clickData, year):
                 traces.append(go.Scatter(
                     x=["city", "village"],
                     y=[value_city[i], value_village[i]],
-                    name=labels[i]
+                    name=labels[i],
+                    marker=dict(
+                        color=colors[i],
+                        size=20
+                    ), line=dict(width=8)
                 ))
         print("traces:", traces)
         return html.Div([
             html.H5(['Amount of mothers in ' + str(year) + ' year in ' + clickData['points'][0]['y'] + ' obl.'],
-                    style={"margin": "40px auto 0 auto",
-                    "text-align": "center"}),
+                    style={"margin": "7px auto 0 auto",
+                           "text-align": "center",
+                           "font-family": 'Courier New, monospace', "font-size": 24, "color": '#7f7f7f'}),
             html.Div(dcc.Graph(
         figure={
             'data': traces,
-             'layout': {
-                'height': 800
-            }
+            'layout': go.Layout(font=dict(family='Courier New, monospace', size=18, color='#7f7f7f'),
+                                height=750,
+                                hovermode='closest')
         }
     ))])
 
@@ -94,7 +99,9 @@ def update_figure(selected_year):
         "name": "city",
         "type": "scatter",
         "marker": dict(
-            size=15)
+            size=15,
+            color=colors[7]
+        ),
     })
     traces.append({
         "y": areas,
@@ -103,15 +110,28 @@ def update_figure(selected_year):
         "name": "village",
         "type": "scatter",
         "marker": dict(
-            size=15)
+            size=15,
+            color=colors[1]
+        )
     })
 
     return {
         'data': traces,
         'layout': go.Layout(
-            xaxis={'title': 'region'},
-            yaxis={'title': 'amount'},
-            margin={'l': 100, 'b': 30, 't': 30, 'r': 0},
+            title='Amount of kids...',
+            hovermode='closest',
+            font=dict(family='Courier New, monospace', size=18, color='#7f7f7f'),
+            xaxis=dict(title='Amount of kids', titlefont=dict(size=20),
+                       showgrid=False,
+                       zeroline=False,
+                       showline=False
+                       ),
+            yaxis=dict(
+                        showgrid=False,
+                        zeroline=False,
+                        showline=False),
+            # yaxis={'title': 'Region', 'titlefont': dict(size=20, color='black')},
+            margin={'l': 170, 'b': 60, 't': 60, 'r': 0},
             height=800
         )
     }
