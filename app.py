@@ -56,7 +56,7 @@ def display_click_data(clickData, year):
                 ))
         print("traces:", traces)
         return html.Div([
-            html.H5(['Amount of mothers in ' + str(year) + ' year in ' + clickData['points'][0]['y'] + ' obl.'],
+            html.H5(['Age variance in ' + str(year) + ' year in ' + clickData['points'][0]['y'] + ' obl.'],
                     style={"margin": "7px auto 0 auto",
                            "text-align": "center",
                            "font-family": 'Courier New, monospace', "font-size": 24, "color": '#7f7f7f'}),
@@ -118,10 +118,10 @@ def update_figure(selected_year):
     return {
         'data': traces,
         'layout': go.Layout(
-            title='Amount of kids...',
+            title='Number of newborn babies in city/village',
             hovermode='closest',
             font=dict(family='Courier New, monospace', size=18, color='#7f7f7f'),
-            xaxis=dict(title='Amount of kids', titlefont=dict(size=20),
+            xaxis=dict(
                        showgrid=False,
                        zeroline=False,
                        showline=False
@@ -138,4 +138,4 @@ def update_figure(selected_year):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8060, host='0.0.0.0')
