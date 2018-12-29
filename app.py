@@ -4,6 +4,8 @@ import dash_html_components as html
 import pandas as pd
 import plotly.graph_objs as go
 
+
+print("dcc version:", dcc.__version__)
 df = pd.read_csv('./kids_sorted_eng.csv')
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -60,7 +62,7 @@ def display_click_data(clickData, year):
                     style={"margin": "7px auto 0 auto",
                            "text-align": "center",
                            "font-family": 'Courier New, monospace', "font-size": 24, "color": '#7f7f7f'}),
-            html.Div(dcc.Graph(
+            html.Div(dcc.Graph( id='graph-external',
         figure={
             'data': traces,
             'layout': go.Layout(font=dict(family='Courier New, monospace', size=18, color='#7f7f7f'),
